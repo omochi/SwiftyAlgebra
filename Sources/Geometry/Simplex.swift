@@ -39,7 +39,7 @@ public struct Simplex: GeometricCell {
     }
     
     public func faces() -> [Simplex] {
-        if dim == 0 {
+        if dim <= 0 {
             return []
         } else {
             return (0 ... dim).map{ face($0) }
@@ -65,6 +65,10 @@ public struct Simplex: GeometricCell {
             i += 1
         }
         return queue.unique()
+    }
+    
+    public func join(_ v: Vertex) -> Simplex {
+        return Simplex(self.vSet.union([v]))
     }
     
     public func join(_ s: Simplex) -> Simplex {
@@ -102,7 +106,7 @@ public struct Simplex: GeometricCell {
 
 public extension Vertex {
     public func join(_ s: Simplex) -> Simplex {
-        return Simplex([self] + s.vertices)
+        return s.join(self)
     }
     
     public func join<R: Ring>(_ chain: SimplicialChain<R>) -> SimplicialChain<R> {

@@ -4,17 +4,18 @@ public protocol FreeModuleBase: SetType {}
 
 public struct FreeModule<R: Ring, A: FreeModuleBase>: Module, Sequence {
     public typealias CoeffRing = R
+    public typealias Basis = [A]
     
-    public let basis: [A]
+    public let basis: Basis
     internal let elements: [A: R]
     
     // root initializer
-    internal init(basis: [A], elements: [A : R]) {
+    internal init(basis: Basis, elements: [A : R]) {
         self.basis = basis
         self.elements = elements
     }
     
-    public init(basis: [A], components: [R]) {
+    public init(basis: Basis, components: [R]) {
         guard basis.count == components.count else {
             fatalError("#basis (\(basis.count)) != #components (\(components.count))")
         }
@@ -91,7 +92,7 @@ public struct FreeModule<R: Ring, A: FreeModuleBase>: Module, Sequence {
         return basis.count > 0 ? self[basis.first!].hashValue : 0
     }
     
-    public static func generateElements<n:_Int, m:_Int>(basis: [A], matrix A: Matrix<R, n, m>) -> [FreeModule<R, A>] {
+    public static func generateElements<n:_Int, m:_Int>(basis: Basis, matrix A: Matrix<R, n, m>) -> [FreeModule<R, A>] {
         return (0 ..< A.cols).map { FreeModule<R, A>(basis: basis, components: A.colArray($0)) }
     }
 }
