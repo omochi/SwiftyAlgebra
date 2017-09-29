@@ -9,46 +9,6 @@
 import Cocoa
 import SceneKit
 
-let PI = Double.pi
-let PI_2 = Double.pi / 2
-
-extension CGRect {
-    init(_ x: CGFloat, _ y: CGFloat, _ w: CGFloat, _ h: CGFloat) {
-        self.init(x: x, y: y, width: w, height: h)
-    }
-}
-
-extension SCNVector3 {
-    init(_ x: CGFloat, _ y: CGFloat, _ z: CGFloat) {
-        self.init(x: x, y: y, z: z)
-    }
-    static var zero: SCNVector3 {
-        return SCNVector3Zero
-    }
-}
-
-extension SCNVector4 {
-    init(_ x: CGFloat, _ y: CGFloat, _ z: CGFloat, _ w: CGFloat) {
-        self.init(x: x, y: y, z: z, w: w)
-    }
-    static var zero: SCNVector4 {
-        return SCNVector4Zero
-    }
-}
-
-extension SCNGeometry {
-    var color: NSColor? {
-        get {
-            return firstMaterial?.diffuse.contents as? NSColor
-        } set {
-            firstMaterial?.diffuse.contents = newValue
-        }
-    }
-}
-
-typealias Vec3 = SCNVector3
-typealias Vec4 = SCNVector4
-
 class ViewController : NSViewController {
     var scene: SCNScene!
     var sceneView:  SCNView!
@@ -74,9 +34,7 @@ class ViewController : NSViewController {
                 camera.orthographicScale = 5
                 return camera
             }()
-            cameraNode.position = Vec3(20, 20, 20)
-            //            cameraNode.rotation = Vec4(0, 1, 0, PI_2)
-            
+            cameraNode.position = Vec3(20, 10, 20)
             return cameraNode
         }()
         
@@ -137,5 +95,20 @@ class ViewController : NSViewController {
         cameraNode.constraints = [target]
         
         self.view = sceneView
+    }
+    
+    override func mouseDragged(with event: NSEvent) {
+        let p = cameraNode.position
+        let t = atan2(p.z, p.x) + event.deltaX / 100
+        let s = clamp(atan2(p.y, len(p.x, p.z) ) + event.deltaY / 100, -PI_2, PI_2)
+        print(s / PI_2)
+        cameraNode.position = 20 * Vec3(cos(s) * cos(t), sin(s), cos(s) * sin(t))
+    }
+    
+    override func scrollWheel(with event: NSEvent) {
+        let camera = cameraNode.camera!
+        let s0 = CGFloat(camera.orthographicScale)
+        let s1 = clamp(CGFloat(s0) + event.deltaY / 10, 1, 10)
+        camera.orthographicScale = s1.native
     }
 }

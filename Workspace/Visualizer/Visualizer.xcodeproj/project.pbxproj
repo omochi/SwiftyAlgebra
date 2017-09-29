@@ -12,6 +12,7 @@
 		1451C2661F7E76BB00000802 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1451C2651F7E76BB00000802 /* Assets.xcassets */; };
 		1451C2691F7E76BB00000802 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1451C2671F7E76BB00000802 /* Main.storyboard */; };
 		1451C2751F7E76BC00000802 /* VisualizerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1451C2741F7E76BC00000802 /* VisualizerTests.swift */; };
+		1451C2801F7E78CD00000802 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1451C27F1F7E78CD00000802 /* Extensions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -35,6 +36,7 @@
 		1451C2701F7E76BC00000802 /* VisualizerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = VisualizerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1451C2741F7E76BC00000802 /* VisualizerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualizerTests.swift; sourceTree = "<group>"; };
 		1451C2761F7E76BC00000802 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		1451C27F1F7E78CD00000802 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -78,6 +80,7 @@
 			children = (
 				1451C2611F7E76BB00000802 /* AppDelegate.swift */,
 				1451C2631F7E76BB00000802 /* ViewController.swift */,
+				1451C27F1F7E78CD00000802 /* Extensions.swift */,
 				1451C2651F7E76BB00000802 /* Assets.xcassets */,
 				1451C2671F7E76BB00000802 /* Main.storyboard */,
 				1451C26A1F7E76BB00000802 /* Info.plist */,
@@ -199,6 +202,7 @@
 			files = (
 				1451C2641F7E76BB00000802 /* ViewController.swift in Sources */,
 				1451C2621F7E76BB00000802 /* AppDelegate.swift in Sources */,
+				1451C2801F7E78CD00000802 /* Extensions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
