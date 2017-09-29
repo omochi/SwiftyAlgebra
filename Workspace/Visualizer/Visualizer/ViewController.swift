@@ -10,21 +10,24 @@ import Cocoa
 import SceneKit
 
 class ViewController : NSViewController {
+    var wValue: CGFloat = 0
+    
     var scene: SCNScene!
-    var sceneView:  SCNView!
+    @IBOutlet var sceneView:  SCNView!
     var cameraNode: SCNNode!
     var cameraTargetNode: SCNNode!
     var axesNode:   SCNNode!
     
-    override func loadView() {
+    var objects: [Vec4] = []
+    var objectsNode: SCNNode!
+    
+    @IBOutlet var slider: NSSlider!
+    
+    override func viewDidLoad() {
         scene = SCNScene()
         
-        sceneView = {
-            let sceneView = SCNView(frame: CGRect(x: 0, y: 0, width: 300, height: 300))
-            sceneView.scene = scene
-            sceneView.autoenablesDefaultLighting = true
-            return sceneView
-        }()
+        sceneView.scene = scene
+        sceneView.autoenablesDefaultLighting = true
         
         cameraNode = {
             let cameraNode = SCNNode()
@@ -94,7 +97,31 @@ class ViewController : NSViewController {
         target.isGimbalLockEnabled = true
         cameraNode.constraints = [target]
         
-        self.view = sceneView
+        objectsNode = SCNNode()
+        scene.rootNode.addChildNode(objectsNode)
+        
+        generateS3()
+        updateObjects()
+    }
+    
+    func generateS3(_ N: Int = 2000) {
+        objects = (0 ..< N).map { _ in SCNVector4.random().normalized }
+        objects.forEach { v in
+            let s = SCNSphere(radius: 0.02)
+            s.segmentCount = 16
+            s.color = NSColor(calibratedHue: 0.5 + v.w / 2, saturation: 1, brightness: 1, alpha: 1)
+            let n = SCNNode(geometry: s)
+            n.position = v.xyz
+            objectsNode.addChildNode(n)
+        }
+    }
+    
+    func updateObjects() {
+        objects.enumerated().forEach { (i, v) in
+            let a = exp(-pow(v.w - wValue, 2) * 15)
+            let n = objectsNode.childNodes[i]
+            n.opacity = a
+        }
     }
     
     override func mouseDragged(with event: NSEvent) {
@@ -110,5 +137,10 @@ class ViewController : NSViewController {
         let s0 = CGFloat(camera.orthographicScale)
         let s1 = clamp(CGFloat(s0) + event.deltaY / 10, 1, 10)
         camera.orthographicScale = s1.native
+    }
+    
+    @IBAction func sliderMoved(target: NSSlider) {
+        wValue = CGFloat(target.doubleValue)
+        updateObjects()
     }
 }
