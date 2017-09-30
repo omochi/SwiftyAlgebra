@@ -69,7 +69,7 @@ extension SCNVector3 {
     }
     
     static func random() -> SCNVector3 {
-        return SCNVector3.random(-1 ... 1)
+        return SCNVector3.random(0 ... 1)
     }
 
     static func random(_ range: ClosedRange<CGFloat>) -> SCNVector3 {
@@ -103,7 +103,7 @@ extension SCNVector4 {
     }
     
     static func random() -> SCNVector4 {
-        return SCNVector4.random(-1 ... 1)
+        return SCNVector4.random(0 ... 1)
     }
     
     static func random(_ range: ClosedRange<CGFloat>) -> SCNVector4 {
