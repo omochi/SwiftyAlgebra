@@ -86,12 +86,32 @@ class ViewController : NSViewController {
         objectsNode = SCNNode()
         scene.rootNode.addChildNode(objectsNode)
         
-        generateGL2()
+        generateS3()
         updateObjects()
+    }
+    
+    func point(_ pos: Vec3, _ color: NSColor = .black) -> SCNNode {
+        let s = SCNSphere(radius: 0.05)
+        s.segmentCount = 8
+        s.color = color
+        let n = SCNNode(geometry: s)
+        n.position = pos
+        return n
     }
     
     func generateS3(_ N: Int = 1000) {
         objects = (0 ..< N).map { _ in SCNVector4.random(-1 ... 1).normalized }
+        objects.forEach { v in
+            objectsNode.addChildNode( point(v.xyz, .blue) )
+        }
+    }
+    
+    /*
+    func generateT2(_ N: Int = 1000) {
+        objects = (0 ..< N).map { _ in
+            
+            return SCNVector4.random(-1 ... 1).normalized
+        }
         objects.forEach { v in
             let s = SCNSphere(radius: 0.02)
             s.segmentCount = 16
@@ -101,16 +121,12 @@ class ViewController : NSViewController {
             objectsNode.addChildNode(n)
         }
     }
+ */
     
     func generateGL2(_ N: Int = 1000) {
         objects = (0 ..< N).map { _ in SCNVector4.random(-1 ... 1) }
         objects.forEach { v in
-            let s = SCNSphere(radius: 0.05)
-            s.segmentCount = 6
-            s.color = (v.x * v.w - v.y * v.z > 0) ? .red : .blue
-            let n = SCNNode(geometry: s)
-            n.position = v.xyz
-            objectsNode.addChildNode(n)
+            objectsNode.addChildNode( point(v.xyz, (v.x * v.w - v.y * v.z > 0) ? .red : .blue) )
         }
     }
     
