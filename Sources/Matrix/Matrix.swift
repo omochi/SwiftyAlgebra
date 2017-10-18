@@ -22,11 +22,7 @@ public struct Matrix<R: Ring, n: _Int, m: _Int>: Module, Sequence {
     public let cols: Int
     public let type: MatrixType
     
-    internal var grid: [R] {
-        willSet {
-            clearCache()
-        }
-    }
+    internal var grid: [R]
     
     internal var smithNormalFormCache: Cache<MatrixEliminator<R, n, m>> = Cache()
     internal func clearCache() {
@@ -188,12 +184,28 @@ public struct Matrix<R: Ring, n: _Int, m: _Int>: Module, Sequence {
     public static func * <p>(a: Matrix<R, n, m>, b: Matrix<R, m, p>) -> Matrix<R, n, p> {
         assert(a.cols == b.rows, "Mismatching matrix size.")
         
-        // TODO improve performance
-        return Matrix<R, n, p>(rows: a.rows, cols: b.cols, type: (a.type == b.type) ? a.type : .Default) { (i, k) -> R in
-            return (0 ..< a.cols)
-                .map({j in a[i, j] * b[j, k]})
-                .reduce(0) {$0 + $1}
+        var grid = Array(repeating: R.zero, count: a.rows * b.cols)
+        var p = UnsafeMutablePointer(&grid)
+        
+        for c in 0 ..< a.rows * b.cols {
+            let (i, j) = (c / b.cols, c % b.cols)
+             
+            var (q, r) = (UnsafePointer(a.grid), UnsafePointer(b.grid))
+            q += a.gridIndex(i, 0)
+            r += b.gridIndex(0, j)
+            
+            var x = R.zero
+            for _ in 0 ..< a.cols {
+                x = x + q.pointee * r.pointee
+                q += 1
+                r += b.cols
+            }
+            
+            p.pointee = x
+            p += 1
         }
+        
+        return Matrix<R, n, p>(rows: a.rows, cols: b.cols, type: a.type, grid: grid)
     }
     
     public var transposed: Matrix<R, m, n> {
