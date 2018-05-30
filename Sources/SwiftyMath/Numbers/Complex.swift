@@ -6,12 +6,6 @@
 //  Copyright © 2018年 Taketo Sano. All rights reserved.
 //
 
-protocol A{}
-struct S<X> {}
-
-extension S: A where X == Int {}
-extension S: A where X == String {}
-
 import Foundation
 
 public typealias ComplexNumber = Complex<𝐑>
@@ -96,37 +90,40 @@ public struct Complex<R: Ring>: Ring {
     }
 }
 
-extension Complex: EuclideanRing, Field, NormedSpace where R == 𝐑 {
+// このとき、Complex: EuclideanRing が成り立たないとコンパイルできない。
+// これは、RealNumber: MakeComplexEuclideanElement なので、
+// 後述するextensionによって満たされるのでOK。
+extension Complex: Field, NormedSpace where R == 𝐑 {
     public init(from r: 𝐐) {
         self.init(r)
     }
-    
+
     public init(_ x: 𝐙) {
         self.init(𝐑(x), 0)
     }
-    
+
     public init(_ x: 𝐐) {
         self.init(𝐑(x), 0)
     }
-    
+
     public init(r: 𝐑, θ: 𝐑) {
         self.init(r * cos(θ), r * sin(θ))
     }
-    
+
     public var abs: 𝐑 {
         return √(x * x + y * y)
     }
-    
+
     public var norm: 𝐑 {
         return abs
     }
-    
+
     public var arg: 𝐑 {
         let r = self.norm
         if(r == 0) {
             return 0
         }
-        
+
         let t = acos(x / r)
         return (y >= 0) ? t : 2 * π - t
     }
@@ -134,14 +131,74 @@ extension Complex: EuclideanRing, Field, NormedSpace where R == 𝐑 {
 
 public typealias GaussInt = Complex<𝐙>
 
-extension Complex: EuclideanRing where R == 𝐙 { // 👈
+// マーカープロトコル
+public protocol MakeComplexEuclideanElement {}
+
+// 本当は extension GaussInt : MakeComplexEuclideanElement {} と書きたいが、
+// 仕様上できないようなので分解して書き下す。
+extension Complex : MakeComplexEuclideanElement where R == Int {}
+
+extension RealNumber : MakeComplexEuclideanElement {}
+
+extension Complex {
+    // Complex<R>からComplex<P>にキャストする
+    public func forceCast<P: Ring>(to type: P.Type) -> Complex<P> {
+        return Complex<P>(realPart as! P,
+                          imaginaryPart as! P)
+    }
+}
+
+extension Complex: EuclideanRing where R : MakeComplexEuclideanElement {
     public func eucDiv(by b: Complex<R>) -> (q: Complex<R>, r: Complex<R>) {
-        fatalError()
+        // 手動でディスパッチ
+        switch R.self {
+        case is GaussInt.Type:
+            let a = self.forceCast(to: GaussInt.self)
+            let b = b.forceCast(to: GaussInt.self)
+            let (q, r) = _eucDev(a, b)
+            return (q: q.forceCast(to: R.self),
+                    r: r.forceCast(to: R.self))
+        case is RealNumber.Type:
+            let a = self.forceCast(to: RealNumber.self)
+            let b = b.forceCast(to: RealNumber.self)
+            let (q, r) = _eucDev(a, b)
+            return (q: q.forceCast(to: R.self),
+                    r: r.forceCast(to: R.self))
+        default:
+            fatalError("unimplemented")
+        }
     }
     
     public var eucDegree: Int {
-        fatalError()
+        // 手動でディスパッチ
+        switch R.self {
+        case is GaussInt.Type:
+            let a = self.forceCast(to: GaussInt.self)
+            return _eucDegree(a)
+        case is RealNumber.Type:
+            let a = self.forceCast(to: RealNumber.self)
+            return _eucDegree(a)
+        default:
+            fatalError("unimplemented")
+        }
     }
+}
+
+fileprivate func _eucDev(_ a: Complex<GaussInt>, _ b: Complex<GaussInt>) -> (q: Complex<GaussInt>, r: Complex<GaussInt>) {
+    fatalError("実装してください")
+}
+
+fileprivate func _eucDegree(_ a: Complex<GaussInt>) -> Int {
+    fatalError("実装してください")
+}
+
+// Fieldからの自動実装を手動で実装・・・。
+fileprivate func _eucDev(_ a: Complex<RealNumber>, _ b: Complex<RealNumber>) -> (q: Complex<RealNumber>, r: Complex<RealNumber>) {
+    return (a / b, .zero)
+}
+
+fileprivate func _eucDegree(_ a: Complex<RealNumber>) -> Int {
+    return a == .zero ? 0 : 1
 }
 
 extension Complex: ExpressibleByIntegerLiteral where R: ExpressibleByIntegerLiteral {
