@@ -10,7 +10,11 @@ public extension FreeModuleGenerator {
 
 public protocol FreeModuleType: Module {
     associatedtype Generator: FreeModuleGenerator
+    #if USE_ABD
+    var elements: ArrayBackedDictionary<Generator, CoeffRing> { get }
+    #else
     var elements: [Generator : CoeffRing] { get }
+    #endif
     static func wrap(_ a: Generator) -> Self
     static func combine<n>(basis: [Generator], vector: ColVector<n, CoeffRing>) -> Self
     func factorize(by: [Generator]) -> DVector<CoeffRing>
@@ -20,6 +24,22 @@ public struct FreeModule<A: FreeModuleGenerator, R: Ring>: FreeModuleType {
     public typealias CoeffRing = R
     public typealias Generator = A
     
+    #if USE_ABD
+    public let elements: ArrayBackedDictionary<Generator, CoeffRing>
+    
+    private init(elements: ArrayBackedDictionary<A, R>) {
+        self.elements = elements
+    }
+    
+    public init(_ elements: ArrayBackedDictionary<A, R>) {
+        self.init(elements: elements)
+    }
+    
+    public init<S: Sequence>(_ elements: S) where S.Element == (A, R) {
+        let dict = ArrayBackedDictionary(elements)
+        self.init(elements: dict)
+    }
+    #else
     public let elements: [A: R]
     
     // root initializer
@@ -31,6 +51,8 @@ public struct FreeModule<A: FreeModuleGenerator, R: Ring>: FreeModuleType {
         let dict = Dictionary(pairs: elements)
         self.init(dict)
     }
+    #endif
+
     
     @_transparent
     public static func wrap(_ a: A) -> FreeModule<A, R> {
@@ -97,8 +119,12 @@ public struct FreeModule<A: FreeModuleGenerator, R: Ring>: FreeModuleType {
     }
     
     public static func sum(_ elements: [FreeModule<A, R>]) -> FreeModule<A, R> {
+        #if USE_ABD
+        var sum = ArrayBackedDictionary<A, R>()
+        #else
         var sum = [A : R]()
-        elements.forEach{ x in
+        #endif
+        elements.forEach { x in
             sum.merge(x.elements) { (r1, r2) in r1 + r2 }
         }
         return FreeModule(sum)
@@ -157,4 +183,25 @@ extension ModuleHom where X: FreeModuleType, Y: FreeModuleType {
     }
 }
 
-extension FreeModule: Codable where A: Codable, R: Codable {}
+extension FreeModule {
+    internal struct CodableStorage {
+        public var elements: [A: R]
+    }
+}
+
+extension FreeModule.CodableStorage : Codable where A : Codable, R : Codable {
+}
+
+extension FreeModule: Codable where A: Codable, R: Codable {
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.singleValueContainer()
+        let storage = try c.decode(CodableStorage.self)
+        self.init(storage.elements.map { $0 })
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        let storage = CodableStorage(elements: Dictionary(uniqueKeysWithValues: elements.map { $0 }))
+        var c = encoder.singleValueContainer()
+        try c.encode(storage)
+    }
+}
