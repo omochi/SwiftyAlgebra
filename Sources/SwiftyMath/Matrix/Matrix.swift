@@ -32,7 +32,7 @@ public struct Matrix<n: SizeType, m: SizeType, R: Ring>: SetType {
     public init(size: (Int, Int), concurrentIterations n: Int, initializer: @escaping (Int, (Int, Int, R) -> Void ) -> Void) {
         let queue = DispatchQueue(label: "MatrixInit", qos: .userInteractive)
         self.init(size: size) { setEntry in
-            DispatchQueue.concurrentPerform(iterations: n) { itr in
+            (0..<n).forEach { itr in
                 initializer(itr) { (i: Int, j: Int, r: R) -> Void in
                     queue.sync { setEntry(i, j, r) }
                 }

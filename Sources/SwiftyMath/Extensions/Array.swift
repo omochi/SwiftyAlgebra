@@ -93,7 +93,7 @@ extension Array where Element: Hashable {
 
 extension Array {
     public func parallelForEach(body: @escaping  (Element) -> Void ) {
-        DispatchQueue.concurrentPerform(iterations: count) { i in
+        (0..<count).forEach { i in
             body(self[i])
         }
     }
@@ -101,9 +101,11 @@ extension Array {
     public func parallelMap<T>(transform: (Element) -> T) -> [T] {
         var result = ContiguousArray<T?>(repeating: nil, count: count)
         return result.withUnsafeMutableBufferPointer { buffer in
-            DispatchQueue.concurrentPerform(iterations: buffer.count) { idx in
+            
+            (0..<buffer.count).forEach { idx in
                 buffer[idx] = transform(self[idx])
             }
+            
             return buffer.map { $0! }
         }
     }
